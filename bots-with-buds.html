@@ -19,7 +19,7 @@
             font-family: 'Courier New', monospace;
             background-color: var(--dark-blue);
             color: white;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -42,7 +42,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100%;
             width: 100%;
         }
 
@@ -84,11 +83,12 @@
         .header {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
             margin-bottom: 20px;
             width: 100%;
         }
 
-        .back-btn {
+        .back-btn, .history-btn {
             background-color: var(--neon-pink);
             color: var(--neon-yellow);
             border: none;
@@ -97,21 +97,9 @@
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-        }
-
-        .help-btn {
-            background-color: var(--neon-pink);
-            color: var(--neon-yellow);
-            border: none;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            box-shadow: 0 0 5px var(--neon-pink);
+            margin-right: 5px;
+            margin-bottom: 5px;
         }
 
         .stats {
@@ -150,9 +138,9 @@
 
         .wall {
             position: absolute;
-            background-color: #ff3333; /* Bright red for better visibility */
+            background-color: #ff3333;
             z-index: 5;
-            box-shadow: 0 0 4px #ff0000; /* Add glow effect to walls */
+            box-shadow: 0 0 4px #ff0000;
         }
 
         .target {
@@ -206,6 +194,95 @@
         .bot-btn.selected {
             transform: scale(1.2);
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--dark-blue);
+            border: 2px solid var(--neon-pink);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-pink);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80%;
+            overflow: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--neon-pink);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: var(--neon-blue);
+            font-size: 24px;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--neon-yellow);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            font-weight: bold;
+        }
+        
+        .modal-body {
+            padding: 15px;
+        }
+        
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .history-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 4px solid var(--neon-pink);
+        }
+        
+        .history-date {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+        
+        .history-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--neon-yellow);
+        }
+        
+        .no-history-message {
+            color: #ccc;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -213,7 +290,7 @@
         <!-- Title Screen -->
         <div id="titleScreen">
             <div class="title">BOTS WITH BUDS</div>
-            <div class="subtitle">A GAME BY SHCAOW STUDIOS</div>
+            <div class="subtitle">A DAILY PUZZLE RACER</div>
             <button class="btn" id="startBtn">START GAME</button>
         </div>
 
@@ -221,6 +298,7 @@
         <div id="gameScreen">
             <div class="header">
                 <button class="back-btn" id="backBtn">BACK</button>
+                <button class="history-btn" id="historyBtn">HISTORY</button>
                 <div class="stats">
                     <div>TIME: <span id="timer">00:00:00</span></div>
                     <div>MOVES: <span id="moveCounter">0</span></div>
@@ -229,6 +307,24 @@
             <div class="game-board" id="gameBoard"></div>
             <div class="bot-selector" id="botSelector">
                 <!-- Bot buttons will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>PUZZLE HISTORY</h2>
+                <button class="close-btn" id="closeHistoryBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-list" id="historyList">
+                    <!-- History items will be added here dynamically -->
+                </div>
+                <div class="no-history-message" id="noHistoryMessage">
+                    No completed puzzles yet. Solve a puzzle to see your stats!
+                </div>
             </div>
         </div>
     </div>
@@ -253,56 +349,57 @@
         let moveCount = 0;
         let startTime = null;
         let timerInterval = null;
+        let puzzleHistory = [];
         
         // DOM Elements
         const titleScreen = document.getElementById('titleScreen');
         const gameScreen = document.getElementById('gameScreen');
         const startBtn = document.getElementById('startBtn');
         const backBtn = document.getElementById('backBtn');
+        const historyBtn = document.getElementById('historyBtn');
         const gameBoard = document.getElementById('gameBoard');
         const botSelector = document.getElementById('botSelector');
         const moveCounter = document.getElementById('moveCounter');
         const timer = document.getElementById('timer');
+        const historyModal = document.getElementById('historyModal');
+        const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+        const historyList = document.getElementById('historyList');
+        const noHistoryMessage = document.getElementById('noHistoryMessage');
 
         // Event Listeners
         startBtn.addEventListener('click', startGame);
         backBtn.addEventListener('click', goToTitleScreen);
+        historyBtn.addEventListener('click', showHistoryModal);
+        closeHistoryBtn.addEventListener('click', closeHistoryModal);
 
         // Initialize level
         function initLevel() {
-            // Wall structure based on Ricochet Robots layout
-            // Each wall blocks movement in both directions between two adjacent cells
+            // Define walls - bidirectional barriers between cells
             walls = [
                 // Center room
-                { x: 3, y: 3, direction: 'right' },  // Wall between (3,3) and (4,3)
-                { x: 4, y: 3, direction: 'left' },   // Wall between (4,3) and (3,3) - other side
+                { x: 3, y: 3, direction: 'right' },
+                { x: 4, y: 3, direction: 'left' },
+                { x: 3, y: 3, direction: 'bottom' },
+                { x: 3, y: 4, direction: 'top' },
+                { x: 3, y: 4, direction: 'right' },
+                { x: 4, y: 4, direction: 'left' },
+                { x: 4, y: 3, direction: 'bottom' },
+                { x: 4, y: 4, direction: 'top' },
                 
-                { x: 3, y: 3, direction: 'bottom' }, // Wall between (3,3) and (3,4)
-                { x: 3, y: 4, direction: 'top' },    // Wall between (3,4) and (3,3) - other side
-                
-                { x: 3, y: 4, direction: 'right' },  // Wall between (3,4) and (4,4)
-                { x: 4, y: 4, direction: 'left' },   // Wall between (4,4) and (3,4) - other side
-                
-                { x: 4, y: 3, direction: 'bottom' }, // Wall between (4,3) and (4,4)
-                { x: 4, y: 4, direction: 'top' },    // Wall between (4,4) and (4,3) - other side
-                
-                // Additional blocking walls
-                { x: 1, y: 1, direction: 'right' },   // Wall between (1,1) and (2,1)
-                { x: 2, y: 1, direction: 'left' },    // Wall between (2,1) and (1,1) - other side
-                
-                { x: 1, y: 1, direction: 'bottom' },  // Wall between (1,1) and (1,2)
-                { x: 1, y: 2, direction: 'top' },     // Wall between (1,2) and (1,1) - other side
-                
-                { x: 5, y: 2, direction: 'bottom' },  // Wall between (5,2) and (5,3)
-                { x: 5, y: 3, direction: 'top' },     // Wall between (5,3) and (5,2) - other side
-                
-                { x: 6, y: 5, direction: 'left' },    // Wall between (6,5) and (5,5)
-                { x: 5, y: 5, direction: 'right' },   // Wall between (5,5) and (6,5) - other side
-                
-                { x: 2, y: 6, direction: 'top' },     // Wall between (2,6) and (2,5)
-                { x: 2, y: 5, direction: 'bottom' }   // Wall between (2,5) and (2,6) - other side
+                // Additional walls
+                { x: 1, y: 1, direction: 'right' },
+                { x: 2, y: 1, direction: 'left' },
+                { x: 1, y: 1, direction: 'bottom' },
+                { x: 1, y: 2, direction: 'top' },
+                { x: 5, y: 2, direction: 'bottom' },
+                { x: 5, y: 3, direction: 'top' },
+                { x: 6, y: 5, direction: 'left' },
+                { x: 5, y: 5, direction: 'right' },
+                { x: 2, y: 6, direction: 'top' },
+                { x: 2, y: 5, direction: 'bottom' }
             ];
             
+            // Define robot starting positions
             bots = [
                 { x: 1, y: 1, color: 0 },
                 { x: 6, y: 1, color: 1 },
@@ -310,6 +407,7 @@
                 { x: 1, y: 6, color: 3 }
             ];
             
+            // Define target positions
             targets = [
                 { x: 3, y: 4, color: 0 },
                 { x: 4, y: 2, color: 1 },
@@ -317,7 +415,7 @@
                 { x: 5, y: 4, color: 3 }
             ];
             
-            // Create position markers at the starting positions of robots
+            // Create position markers
             positionMarkers = bots.map(bot => ({
                 x: bot.x,
                 y: bot.y,
@@ -329,10 +427,12 @@
         function startGame() {
             titleScreen.style.display = 'none';
             gameScreen.style.display = 'block';
+            
+            // Initialize game
             initLevel();
             setupBotSelector();
             renderBoard();
-            setupSwipeEvents();
+            setupKeyboardControls();
             startTimer();
         }
 
@@ -359,8 +459,6 @@
                         btn.classList.remove('selected');
                     });
                     botBtn.classList.add('selected');
-                    
-                    // Find bot with matching color
                     selectedBotIndex = bots.findIndex(b => b.color === index);
                 });
                 
@@ -368,9 +466,8 @@
             });
         }
 
-        // Setup swipe events
-        function setupSwipeEvents() {
-            // Add keyboard controls
+        // Setup keyboard controls
+        function setupKeyboardControls() {
             document.addEventListener('keydown', (e) => {
                 if (selectedBotIndex === null) return;
                 
@@ -389,38 +486,24 @@
                         break;
                 }
             });
-            
-            // Add click handlers to bots
-            document.querySelectorAll('.bot').forEach((botEl, index) => {
-                botEl.addEventListener('click', () => {
-                    document.querySelectorAll('.bot-btn').forEach(btn => {
-                        btn.classList.remove('selected');
-                    });
-                    document.querySelectorAll('.bot-btn')[bots[index].color].classList.add('selected');
-                    selectedBotIndex = index;
-                });
-            });
         }
 
         // Start timer
         function startTimer() {
-            // Reset timer state
             startTime = new Date();
             moveCount = 0;
             moveCounter.textContent = "0";
             
-            // Update timer every 10ms for smooth display
             timerInterval = setInterval(() => {
                 const currentTime = new Date();
                 const elapsedMilliseconds = currentTime - startTime;
                 
-                // Format as mm:ss:fff (minutes:seconds:milliseconds)
                 const minutes = Math.floor(elapsedMilliseconds / 60000);
                 const seconds = Math.floor((elapsedMilliseconds % 60000) / 1000);
                 const milliseconds = Math.floor((elapsedMilliseconds % 1000) / 10);
                 
                 timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(2, '0')}`;
-            }, 10); // Update every 10ms for smooth counting
+            }, 10);
         }
 
         // Stop timer
@@ -464,30 +547,25 @@
             
             // Render walls
             walls.forEach(wall => {
-                let wallElement = document.createElement('div');
+                const wallElement = document.createElement('div');
                 wallElement.className = 'wall';
                 
-                // All walls are thick: 4px
                 if (wall.direction === 'right') {
-                    // Wall on the right edge of a cell
                     wallElement.style.width = '4px';
                     wallElement.style.height = `${cellSize}px`;
                     wallElement.style.left = `${(wall.x + 1) * cellSize - 2}px`;
                     wallElement.style.top = `${wall.y * cellSize}px`;
                 } else if (wall.direction === 'left') {
-                    // Wall on the left edge of a cell
                     wallElement.style.width = '4px';
                     wallElement.style.height = `${cellSize}px`;
                     wallElement.style.left = `${wall.x * cellSize - 2}px`;
                     wallElement.style.top = `${wall.y * cellSize}px`;
                 } else if (wall.direction === 'bottom') {
-                    // Wall on the bottom edge of a cell
                     wallElement.style.width = `${cellSize}px`;
                     wallElement.style.height = '4px';
                     wallElement.style.left = `${wall.x * cellSize}px`;
                     wallElement.style.top = `${(wall.y + 1) * cellSize - 2}px`;
                 } else if (wall.direction === 'top') {
-                    // Wall on the top edge of a cell
                     wallElement.style.width = `${cellSize}px`;
                     wallElement.style.height = '4px';
                     wallElement.style.left = `${wall.x * cellSize}px`;
@@ -524,7 +602,6 @@
                 botElement.style.backgroundColor = botColor.color;
                 botElement.style.boxShadow = `0 0 10px ${botColor.shadow}`;
                 botElement.innerHTML = botColor.shape;
-                botElement.dataset.index = index;
                 
                 botElement.addEventListener('click', () => {
                     selectedBotIndex = index;
@@ -573,22 +650,18 @@
                 
                 // Check if there's a wall blocking the move
                 const hasWall = walls.some(wall => {
-                    // Moving right and there's a wall on the right of the current cell
                     if (direction === 'right' && wall.direction === 'right' && 
                         wall.x === newX && wall.y === newY) {
                         return true;
                     }
-                    // Moving left and there's a wall on the left of the current cell
                     if (direction === 'left' && wall.direction === 'left' && 
                         wall.x === newX && wall.y === newY) {
                         return true;
                     }
-                    // Moving down and there's a wall on the bottom of the current cell
                     if (direction === 'down' && wall.direction === 'bottom' && 
                         wall.x === newX && wall.y === newY) {
                         return true;
                     }
-                    // Moving up and there's a wall on the top of the current cell
                     if (direction === 'up' && wall.direction === 'top' && 
                         wall.x === newX && wall.y === newY) {
                         return true;
@@ -636,13 +709,19 @@
                         // Stop timer first to capture final time
                         stopTimer();
                         
-                        // Get the final time and move count
+                        // Get final stats
                         const finalTime = timer.textContent;
                         const finalMoves = moveCount;
                         
-                        // Small delay to ensure the board renders first
+                        // Add to history
+                        try {
+                            addToHistory(finalTime, finalMoves);
+                        } catch (error) {
+                            console.log("History feature unavailable in sandbox mode");
+                        }
+                        
+                        // Show victory message
                         setTimeout(() => {
-                            // Create a visually appealing victory message
                             const victoryMessage = 
                                 `🎮 TARGET REACHED! 🎮\n\n` +
                                 `⏱️ Time: ${finalTime}\n` +
@@ -651,7 +730,7 @@
                                 
                             alert(victoryMessage);
                             
-                            // Reset game state for new round
+                            // Reset game for next round
                             initLevel();
                             renderBoard();
                             moveCount = 0;
@@ -660,6 +739,126 @@
                         }, 100);
                     }
                 });
+            });
+        }
+
+        // Show history modal
+        function showHistoryModal() {
+            try {
+                updateHistoryList();
+                historyModal.style.display = 'flex';
+            } catch (error) {
+                noHistoryMessage.style.display = 'block';
+                historyModal.style.display = 'flex';
+                alert("History feature is limited in sandbox mode. Your scores won't persist between sessions.");
+            }
+        }
+
+        // Close history modal
+        function closeHistoryModal() {
+            historyModal.style.display = 'none';
+        }
+
+        // Safe localStorage access with fallback to memory
+        function safeGetItem(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function safeSetItem(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // Load puzzle history
+        function loadPuzzleHistory() {
+            try {
+                const savedHistory = safeGetItem('botsWithBudsHistory');
+                if (savedHistory) {
+                    puzzleHistory = JSON.parse(savedHistory);
+                } else {
+                    puzzleHistory = [];
+                }
+            } catch (error) {
+                puzzleHistory = [];
+            }
+        }
+
+        // Save puzzle history
+        function savePuzzleHistory() {
+            try {
+                safeSetItem('botsWithBudsHistory', JSON.stringify(puzzleHistory));
+            } catch (error) {
+                console.log("Unable to save history");
+            }
+        }
+
+        // Add new puzzle completion to history
+        function addToHistory(time, moves) {
+            const completionDate = new Date();
+            
+            puzzleHistory.unshift({
+                date: completionDate.toISOString(),
+                displayDate: formatDate(completionDate),
+                time: time,
+                moves: moves
+            });
+            
+            // Limit history to 50 entries
+            if (puzzleHistory.length > 50) {
+                puzzleHistory.pop();
+            }
+            
+            try {
+                savePuzzleHistory();
+            } catch (error) {
+                console.log("History saving is unavailable");
+            }
+        }
+
+        // Format date for display
+        function formatDate(date) {
+            const options = { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Update history list in the modal
+        function updateHistoryList() {
+            historyList.innerHTML = '';
+            
+            if (puzzleHistory.length === 0) {
+                noHistoryMessage.style.display = 'block';
+                return;
+            }
+            
+            noHistoryMessage.style.display = 'none';
+            
+            puzzleHistory.forEach(entry => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                historyItem.innerHTML = `
+                    <div class="history-date">${entry.displayDate}</div>
+                    <div class="history-stats">
+                        <div>Time: ${entry.time}</div>
+                        <div>Moves: ${entry.moves}</div>
+                    </div>
+                `;
+                
+                historyList.appendChild(historyItem);
             });
         }
     </script>

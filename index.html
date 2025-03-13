@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a2d">
     <title>Bots with Buds</title>
     <style>
         :root {
@@ -25,6 +28,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
 
         .container {
@@ -161,6 +168,8 @@
         #gameScreen {
             display: none;
             width: 100%;
+            overflow: hidden;
+            touch-action: none;
         }
 
         .header {
@@ -244,6 +253,11 @@
             border: 2px solid var(--neon-pink);
             box-shadow: 0 0 20px var(--neon-pink);
             margin-bottom: 40px;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            overflow: hidden;
         }
 
         .grid-cell {
@@ -879,6 +893,68 @@
                         break;
                 }
             });
+
+            // Add touch controls
+            let touchStartX = 0;
+            let touchStartY = 0;
+            const minSwipeDistance = 30; // Minimum distance for a swipe
+            let isSwiping = false;
+
+            // Prevent all touch events on the game board from scrolling
+            gameBoard.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwiping = true;
+                e.preventDefault();
+            }, { passive: false });
+
+            gameBoard.addEventListener('touchmove', (e) => {
+                if (isSwiping) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            gameBoard.addEventListener('touchend', (e) => {
+                if (!isSwiping) return;
+                isSwiping = false;
+
+                if (selectedBotIndex === null) return;
+
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                // Determine if the swipe was primarily horizontal or vertical
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // Horizontal swipe
+                    if (Math.abs(deltaX) > minSwipeDistance) {
+                        if (deltaX > 0) {
+                            moveBot(selectedBotIndex, 'right');
+                        } else {
+                            moveBot(selectedBotIndex, 'left');
+                        }
+                    }
+                } else {
+                    // Vertical swipe
+                    if (Math.abs(deltaY) > minSwipeDistance) {
+                        if (deltaY > 0) {
+                            moveBot(selectedBotIndex, 'down');
+                        } else {
+                            moveBot(selectedBotIndex, 'up');
+                        }
+                    }
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            // Prevent scrolling on the entire game screen when touching the game board
+            gameScreen.addEventListener('touchmove', (e) => {
+                if (isSwiping) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
         // Start timer

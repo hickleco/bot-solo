@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bots with Buds</title>
+    <style>
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-blue: #00ffff;
+            --dark-blue: #0a0a2d;
+            --grid-blue: #0f1035;
+            --neon-yellow: #ffff00;
+            --wall-blue: #44ddff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #000 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* Title Screen */
+        #titleScreen {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #000 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #titleScreen::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(68, 221, 255, 0.1) 0px,
+                rgba(68, 221, 255, 0.1) 1px,
+                transparent 1px,
+                transparent 15px
+            );
+            animation: gridMove 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(50%) rotate(45deg); }
+        }
+
+        .title-container {
+            position: relative;
+            z-index: 2;
+            transform: perspective(500px) rotateX(10deg);
+            margin-bottom: 100px;
+        }
+
+        .title {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(180deg, var(--neon-pink) 0%, var(--neon-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+            font-family: 'Arial Black', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .title::before, .title::after {
+            content: '★';
+            position: absolute;
+            color: var(--neon-pink);
+            font-size: 32px;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .title::before {
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-15deg);
+        }
+
+        .title::after {
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%) rotate(15deg);
+        }
+
+        .subtitle {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(180deg, var(--neon-blue) 0%, #80ffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .credits {
+            font-size: 24px;
+            color: var(--neon-blue);
+            margin: 40px 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: var(--neon-pink);
+            color: var(--neon-yellow);
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--neon-pink);
+            margin: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--neon-pink);
+        }
+
+        /* Game Screen */
+        #gameScreen {
+            display: none;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .reset-btn, .history-btn {
+            background-color: var(--neon-pink);
+            color: var(--neon-yellow);
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--neon-pink);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-yellow);
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 140px;
+        }
+
+        .reset-btn::before, .history-btn::before {
+            margin-right: 10px;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+            font-size: 24px;
+        }
+
+        .reset-btn::before {
+            content: "↺";
+            transform: scaleX(-1);
+        }
+
+        .history-btn::before {
+            content: "";
+            display: none;
+        }
+
+        .reset-btn:hover, .history-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--neon-pink);
+            background-color: #ff1fff;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin: 20px 0;
+            padding: 10px;
+            color: var(--neon-yellow);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-yellow);
+        }
+        
+        #timer, #moveCounter {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            margin-left: 10px;
+        }
+
+        .game-board {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background-color: var(--grid-blue);
+            position: relative;
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
+            margin-bottom: 40px;
+        }
+
+        .grid-cell {
+            position: absolute;
+            box-sizing: border-box;
+            border: 1px solid rgba(68, 221, 255, 0.2);
+            background: linear-gradient(135deg, 
+                rgba(68, 221, 255, 0.1) 0%, 
+                transparent 100%
+            );
+        }
+
+        .wall {
+            position: absolute;
+            background-color: var(--wall-blue);
+            z-index: 5;
+            box-shadow: 0 0 8px var(--wall-blue);
+            opacity: 1;
+        }
+
+        .target {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 4;
+        }
+        
+        .position-marker {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px dashed;
+            z-index: 3;
+            box-sizing: border-box;
+        }
+
+        .bot {
+            position: absolute;
+            border-radius: 50%;
+            box-shadow: 0 0 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: left 0.85s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        top 0.85s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        transform 0.2s ease;
+        }
+
+        .bot.moving {
+            animation: botMove 0.85s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes botMove {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .bot:hover {
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        .bot-selector {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            margin: 0 auto 30px auto;
+            background-color: var(--neon-pink);
+            border-radius: 30px;
+            padding: 15px;
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        .bot-btn {
+            width: 60px;
+            height: 60px;
+            margin: 0 10px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            color: rgba(0, 0, 0, 0.7);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 0 10px rgba(0, 0, 0, 0.3),
+                inset 0 0 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bot-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.2) 0%, 
+                rgba(255, 255, 255, 0.1) 47%, 
+                rgba(0, 0, 0, 0.1) 53%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 50%;
+        }
+
+        .bot-btn.selected {
+            transform: scale(1.2);
+            box-shadow: 
+                0 0 20px currentColor,
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            color: rgba(0, 0, 0, 0.8);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .bot-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 
+                0 0 15px rgba(0, 0, 0, 0.4),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--dark-blue);
+            border: 2px solid var(--neon-pink);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-pink);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80%;
+            overflow: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--neon-pink);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: var(--neon-blue);
+            font-size: 24px;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--neon-yellow);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            font-weight: bold;
+        }
+        
+        .modal-body {
+            padding: 15px;
+        }
+        
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .history-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 4px solid var(--neon-pink);
+        }
+        
+        .history-date {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+        
+        .history-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--neon-yellow);
+        }
+        
+        .no-history-message {
+            color: #ccc;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        /* Alert Dialog Styling */
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        dialog {
+            background-color: var(--dark-blue);
+            border: 2px solid var(--neon-pink);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-pink);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        dialog button {
+            background-color: var(--neon-pink);
+            color: var(--neon-yellow);
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--neon-pink);
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        dialog button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        /* Remove puzzle selector styles */
+        .puzzle-info {
+            color: var(--neon-blue);
+            font-size: 14px;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Title Screen -->
+        <div id="titleScreen">
+            <div class="title-container">
+                <div class="title">BOTS WITH BUDS</div>
+                <div class="credits">THE DAILY PUZZLE RACE</div>
+            </div>
+            <button class="btn" id="startBtn">START GAME</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen">
+            <div class="header">
+                <button class="reset-btn" id="resetBtn">Reset</button>
+                <button class="history-btn" id="historyBtn">Stats</button>
+                <div class="stats">
+                    <div>TIME: <span id="timer">00:00:00</span></div>
+                    <div>MOVES: <span id="moveCounter">0</span></div>
+                </div>
+            </div>
+            <div class="game-board" id="gameBoard"></div>
+            <div class="bot-selector" id="botSelector">
+                <!-- Bot buttons will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>PUZZLE HISTORY</h2>
+                <button class="close-btn" id="closeHistoryBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-list" id="historyList">
+                    <!-- History items will be added here dynamically -->
+                </div>
+                <div class="no-history-message" id="noHistoryMessage">
+                    No completed puzzles yet. Solve a puzzle to see your stats!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Dialog -->
+    <dialog id="victoryDialog">
+        <div id="victoryMessage"></div>
+        <button id="playAgainBtn">PLAY AGAIN</button>
+    </dialog>
+
+    <script>
+        // Game configuration
+        const GRID_SIZE = 8;
+        const BOT_COLORS = [
+            { color: '#FF44FF', shadow: '#FF00FF', shape: '◆' }, // Diamond - Pink
+            { color: '#FFAA44', shadow: '#FF8800', shape: '▲' }, // Triangle - Orange
+            { color: '#44FF44', shadow: '#00FF00', shape: '★' }, // Star - Green
+            { color: '#44DDFF', shadow: '#00CCFF', shape: '●' }  // Circle - Blue
+        ];
+
+        // Puzzle Bank
+        const PUZZLE_BANK = [
+            {
+                id: 1,
+                name: "Twisted Corridor",
+                difficulty: "Easy",
+                walls: [
+                    // Main corridor
+                    { x: 2, y: 1, direction: 'right' },
+                    { x: 3, y: 1, direction: 'left' },
+                    { x: 2, y: 1, direction: 'bottom' },
+                    { x: 2, y: 2, direction: 'top' },
+                    { x: 5, y: 3, direction: 'right' },
+                    { x: 6, y: 3, direction: 'left' },
+                    { x: 5, y: 3, direction: 'bottom' },
+                    { x: 5, y: 4, direction: 'top' },
+                    // Side chambers
+                    { x: 1, y: 4, direction: 'right' },
+                    { x: 2, y: 4, direction: 'left' },
+                    { x: 1, y: 4, direction: 'bottom' },
+                    { x: 1, y: 5, direction: 'top' },
+                    { x: 4, y: 6, direction: 'right' },
+                    { x: 5, y: 6, direction: 'left' },
+                    { x: 6, y: 5, direction: 'bottom' },
+                    { x: 6, y: 6, direction: 'top' }
+                ],
+                bots: [
+                    { x: 0, y: 0, color: 0 }, // Pink Diamond
+                    { x: 7, y: 2, color: 1 }, // Orange Triangle
+                    { x: 6, y: 7, color: 2 }, // Green Star
+                    { x: 1, y: 6, color: 3 }  // Blue Circle
+                ],
+                targets: [
+                    { x: 3, y: 2, color: 0 }, // Pink Diamond target
+                    { x: 5, y: 5, color: 1 }, // Orange Triangle target
+                    { x: 2, y: 5, color: 2 }, // Green Star target
+                    { x: 4, y: 3, color: 3 }  // Blue Circle target
+                ]
+            },
+            {
+                id: 2,
+                name: "Maze Runner",
+                difficulty: "Medium",
+                walls: [
+                    // Upper section
+                    { x: 1, y: 1, direction: 'right' },
+                    { x: 2, y: 1, direction: 'left' },
+                    { x: 4, y: 0, direction: 'bottom' },
+                    { x: 4, y: 1, direction: 'top' },
+                    { x: 6, y: 2, direction: 'right' },
+                    { x: 7, y: 2, direction: 'left' },
+                    // Middle section
+                    { x: 2, y: 3, direction: 'right' },
+                    { x: 3, y: 3, direction: 'left' },
+                    { x: 3, y: 3, direction: 'bottom' },
+                    { x: 3, y: 4, direction: 'top' },
+                    { x: 5, y: 4, direction: 'right' },
+                    { x: 6, y: 4, direction: 'left' },
+                    // Lower section
+                    { x: 1, y: 5, direction: 'bottom' },
+                    { x: 1, y: 6, direction: 'top' },
+                    { x: 4, y: 6, direction: 'right' },
+                    { x: 5, y: 6, direction: 'left' }
+                ],
+                bots: [
+                    { x: 0, y: 1, color: 0 },
+                    { x: 6, y: 1, color: 1 },
+                    { x: 7, y: 6, color: 2 },
+                    { x: 2, y: 7, color: 3 }
+                ],
+                targets: [
+                    { x: 5, y: 2, color: 0 },
+                    { x: 2, y: 4, color: 1 },
+                    { x: 6, y: 5, color: 2 },
+                    { x: 3, y: 6, color: 3 }
+                ]
+            }
+        ];
+
+        // Game state
+        let selectedBotIndex = null;
+        let bots = [];
+        let targets = [];
+        let currentTargetIndex = null;
+        let walls = [];
+        let positionMarkers = [];
+        let cellSize = 0;
+        let moveCount = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let puzzleHistory = [];
+        let currentPuzzle = null;
+        
+        // DOM Elements
+        const titleScreen = document.getElementById('titleScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const historyBtn = document.getElementById('historyBtn');
+        const gameBoard = document.getElementById('gameBoard');
+        const botSelector = document.getElementById('botSelector');
+        const moveCounter = document.getElementById('moveCounter');
+        const timer = document.getElementById('timer');
+        const historyModal = document.getElementById('historyModal');
+        const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+        const historyList = document.getElementById('historyList');
+        const noHistoryMessage = document.getElementById('noHistoryMessage');
+
+        // Event Listeners
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetBots);
+        historyBtn.addEventListener('click', showHistoryModal);
+        closeHistoryBtn.addEventListener('click', closeHistoryModal);
+
+        // Puzzle solver
+        function getValidMoves(state, walls) {
+            const moves = [];
+            const directions = ['up', 'down', 'left', 'right'];
+            
+            for (let botIndex = 0; botIndex < state.length; botIndex++) {
+                for (const direction of directions) {
+                    let newX = state[botIndex].x;
+                    let newY = state[botIndex].y;
+                    let hasMoved = false;
+                    
+                    while (true) {
+                        let nextX = newX;
+                        let nextY = newY;
+                        
+                        switch (direction) {
+                            case 'up': nextY--; break;
+                            case 'down': nextY++; break;
+                            case 'left': nextX--; break;
+                            case 'right': nextX++; break;
+                        }
+                        
+                        // Check board boundaries
+                        if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
+                            break;
+                        }
+                        
+                        // Check walls
+                        const hasWall = walls.some(wall => {
+                            if (direction === 'right' && wall.direction === 'right' && 
+                                wall.x === newX && wall.y === newY) return true;
+                            if (direction === 'left' && wall.direction === 'left' && 
+                                wall.x === newX && wall.y === newY) return true;
+                            if (direction === 'down' && wall.direction === 'bottom' && 
+                                wall.x === newX && wall.y === newY) return true;
+                            if (direction === 'up' && wall.direction === 'top' && 
+                                wall.x === newX && wall.y === newY) return true;
+                            return false;
+                        });
+                        
+                        if (hasWall) break;
+                        
+                        // Check other bots
+                        const hasBot = state.some((bot, idx) => 
+                            idx !== botIndex && bot.x === nextX && bot.y === nextY
+                        );
+                        
+                        if (hasBot) break;
+                        
+                        newX = nextX;
+                        newY = nextY;
+                        hasMoved = true;
+                    }
+                    
+                    if (hasMoved) {
+                        const newState = state.map((bot, idx) => {
+                            if (idx === botIndex) {
+                                return { ...bot, x: newX, y: newY };
+                            }
+                            return { ...bot };
+                        });
+                        moves.push({ state: newState, botIndex, direction });
+                    }
+                }
+            }
+            
+            return moves;
+        }
+
+        function stateToString(state) {
+            return state.map(bot => `${bot.x},${bot.y}`).join('|');
+        }
+
+        function solvePuzzle(initialBots, walls, target) {
+            const queue = [{ state: initialBots, moves: [] }];
+            const visited = new Set([stateToString(initialBots)]);
+            
+            while (queue.length > 0) {
+                const { state, moves } = queue.shift();
+                
+                // Check if target is reached
+                const targetBot = state.find(bot => bot.color === target.color);
+                if (targetBot.x === target.x && targetBot.y === target.y) {
+                    return moves.length;
+                }
+                
+                // Get all possible moves from current state
+                const validMoves = getValidMoves(state, walls);
+                
+                for (const move of validMoves) {
+                    const stateStr = stateToString(move.state);
+                    if (!visited.has(stateStr)) {
+                        visited.add(stateStr);
+                        queue.push({
+                            state: move.state,
+                            moves: [...moves, move]
+                        });
+                    }
+                }
+                
+                // Limit search depth to avoid infinite loops
+                if (moves.length > 50) break;
+            }
+            
+            return null; // No solution found
+        }
+
+        // Initialize level with solver
+        function initLevel() {
+            // Select random puzzle
+            currentPuzzle = PUZZLE_BANK[Math.floor(Math.random() * PUZZLE_BANK.length)];
+            if (!currentPuzzle) {
+                console.error('No puzzles available!');
+                return;
+            }
+
+            // Set walls
+            walls = [...currentPuzzle.walls];
+            
+            // Set bot positions
+            bots = [...currentPuzzle.bots];
+            
+            // Set all possible target positions
+            targets = [...currentPuzzle.targets];
+
+            // Choose a random target to be active
+            currentTargetIndex = Math.floor(Math.random() * targets.length);
+            
+            // Create position markers
+            positionMarkers = bots.map(bot => ({
+                x: bot.x,
+                y: bot.y,
+                color: bot.color
+            }));
+
+            // Calculate optimal solution after a short delay to allow the board to render first
+            setTimeout(() => {
+                const optimalMoves = solvePuzzle(bots, walls, targets[currentTargetIndex]);
+                currentPuzzle.optimalMoves = optimalMoves || '?';
+            }, 100);
+        }
+
+        // Start game function
+        function startGame() {
+            titleScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // Initialize game
+            initLevel();
+            setupBotSelector();
+            renderBoard();
+            setupKeyboardControls();
+            startTimer();
+        }
+
+        // Setup bot selector
+        function setupBotSelector() {
+            botSelector.innerHTML = '';
+            
+            BOT_COLORS.forEach((bot, index) => {
+                const botBtn = document.createElement('button');
+                botBtn.className = 'bot-btn';
+                botBtn.style.backgroundColor = bot.color;
+                botBtn.style.boxShadow = `0 0 10px ${bot.shadow}`;
+                botBtn.innerHTML = bot.shape;
+                
+                botBtn.addEventListener('click', () => {
+                    document.querySelectorAll('.bot-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    botBtn.classList.add('selected');
+                    selectedBotIndex = bots.findIndex(b => b.color === index);
+                });
+                
+                botSelector.appendChild(botBtn);
+            });
+        }
+
+        // Setup keyboard controls
+        function setupKeyboardControls() {
+            document.addEventListener('keydown', (e) => {
+                if (selectedBotIndex === null) return;
+                
+                switch (e.key) {
+                    case 'ArrowUp':
+                        moveBot(selectedBotIndex, 'up');
+                        break;
+                    case 'ArrowDown':
+                        moveBot(selectedBotIndex, 'down');
+                        break;
+                    case 'ArrowLeft':
+                        moveBot(selectedBotIndex, 'left');
+                        break;
+                    case 'ArrowRight':
+                        moveBot(selectedBotIndex, 'right');
+                        break;
+                }
+            });
+        }
+
+        // Start timer
+        function startTimer() {
+            startTime = Date.now();
+            moveCount = 0;
+            moveCounter.textContent = "0";
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            timerInterval = setInterval(() => {
+                const elapsedMilliseconds = Date.now() - startTime;
+                
+                const minutes = Math.floor(elapsedMilliseconds / 60000);
+                const seconds = Math.floor((elapsedMilliseconds % 60000) / 1000);
+                const milliseconds = Math.floor((elapsedMilliseconds % 1000) / 10);
+                
+                timer.textContent = 
+                    `${minutes.toString().padStart(2, '0')}:` +
+                    `${seconds.toString().padStart(2, '0')}:` +
+                    `${milliseconds.toString().padStart(2, '0')}`;
+            }, 10);
+        }
+
+        // Stop timer
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Render the game board
+        function renderBoard() {
+            gameBoard.innerHTML = '';
+            cellSize = gameBoard.offsetWidth / GRID_SIZE;
+            
+            // Create grid cells
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.style.width = `${cellSize}px`;
+                    cell.style.height = `${cellSize}px`;
+                    cell.style.left = `${x * cellSize}px`;
+                    cell.style.top = `${y * cellSize}px`;
+                    gameBoard.appendChild(cell);
+                }
+            }
+            
+            // Render position markers
+            positionMarkers.forEach(marker => {
+                const botColor = BOT_COLORS[marker.color];
+                const markerElement = document.createElement('div');
+                markerElement.className = 'position-marker';
+                markerElement.style.width = `${cellSize * 0.8}px`;
+                markerElement.style.height = `${cellSize * 0.8}px`;
+                markerElement.style.left = `${marker.x * cellSize + (cellSize * 0.1)}px`;
+                markerElement.style.top = `${marker.y * cellSize + (cellSize * 0.1)}px`;
+                markerElement.style.borderColor = botColor.shadow;
+                markerElement.style.borderWidth = '3px';
+                gameBoard.appendChild(markerElement);
+            });
+            
+            // Render walls
+            walls.forEach(wall => {
+                const wallElement = document.createElement('div');
+                wallElement.className = 'wall';
+                
+                if (wall.direction === 'right') {
+                    wallElement.style.width = '3px';
+                    wallElement.style.height = `${cellSize + 3}px`;
+                    wallElement.style.left = `${(wall.x + 1) * cellSize - 1.5}px`;
+                    wallElement.style.top = `${wall.y * cellSize - 1.5}px`;
+                } else if (wall.direction === 'left') {
+                    wallElement.style.width = '3px';
+                    wallElement.style.height = `${cellSize + 3}px`;
+                    wallElement.style.left = `${wall.x * cellSize - 1.5}px`;
+                    wallElement.style.top = `${wall.y * cellSize - 1.5}px`;
+                } else if (wall.direction === 'bottom') {
+                    wallElement.style.width = `${cellSize + 3}px`;
+                    wallElement.style.height = '3px';
+                    wallElement.style.left = `${wall.x * cellSize - 1.5}px`;
+                    wallElement.style.top = `${(wall.y + 1) * cellSize - 1.5}px`;
+                } else if (wall.direction === 'top') {
+                    wallElement.style.width = `${cellSize + 3}px`;
+                    wallElement.style.height = '3px';
+                    wallElement.style.left = `${wall.x * cellSize - 1.5}px`;
+                    wallElement.style.top = `${wall.y * cellSize - 1.5}px`;
+                }
+                
+                gameBoard.appendChild(wallElement);
+            });
+            
+            // Render only the current target
+            const target = targets[currentTargetIndex];
+            const botColor = BOT_COLORS[target.color];
+            const targetElement = document.createElement('div');
+            targetElement.className = 'target';
+            targetElement.style.width = `${cellSize * 0.6}px`;
+            targetElement.style.height = `${cellSize * 0.6}px`;
+            targetElement.style.left = `${target.x * cellSize + (cellSize * 0.2)}px`;
+            targetElement.style.top = `${target.y * cellSize + (cellSize * 0.2)}px`;
+            targetElement.style.color = botColor.color;
+            targetElement.style.textShadow = `0 0 10px ${botColor.shadow}`;
+            targetElement.style.fontSize = '32px';
+            targetElement.style.opacity = '0.6';
+            targetElement.style.display = 'flex';
+            targetElement.style.justifyContent = 'center';
+            targetElement.style.alignItems = 'center';
+            targetElement.innerHTML = botColor.shape;
+            gameBoard.appendChild(targetElement);
+            
+            // Render bots
+            bots.forEach((bot, index) => {
+                const botColor = BOT_COLORS[bot.color];
+                const botElement = document.createElement('div');
+                botElement.className = 'bot';
+                botElement.style.width = `${cellSize * 0.8}px`;
+                botElement.style.height = `${cellSize * 0.8}px`;
+                botElement.style.left = `${bot.x * cellSize + (cellSize * 0.1)}px`;
+                botElement.style.top = `${bot.y * cellSize + (cellSize * 0.1)}px`;
+                botElement.style.backgroundColor = botColor.color;
+                botElement.style.boxShadow = `0 0 10px ${botColor.shadow}`;
+                botElement.innerHTML = botColor.shape;
+                
+                // Add animation trigger
+                if (bot.x !== bot.x || bot.y !== bot.y) {
+                    botElement.style.animation = 'none';
+                    botElement.offsetHeight; // Trigger reflow
+                    botElement.style.animation = 'botMove 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                }
+                
+                botElement.addEventListener('click', () => {
+                    selectedBotIndex = index;
+                    document.querySelectorAll('.bot-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    document.querySelectorAll('.bot-btn')[bot.color].classList.add('selected');
+                });
+                
+                gameBoard.appendChild(botElement);
+            });
+        }
+
+        // Move bot in specified direction
+        function moveBot(botIndex, direction) {
+            const bot = bots[botIndex];
+            let newX = bot.x;
+            let newY = bot.y;
+            let hasMoved = false;
+            
+            while (true) {
+                let nextX = newX;
+                let nextY = newY;
+                
+                // Calculate next position based on direction
+                switch (direction) {
+                    case 'up':
+                        nextY--;
+                        break;
+                    case 'down':
+                        nextY++;
+                        break;
+                    case 'left':
+                        nextX--;
+                        break;
+                    case 'right':
+                        nextX++;
+                        break;
+                }
+                
+                // Check if the move is valid
+                if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
+                    // Hit the edge of the board
+                    break;
+                }
+                
+                // Check if there's a wall blocking the move
+                const hasWall = walls.some(wall => {
+                    if (direction === 'right' && wall.direction === 'right' && 
+                        wall.x === newX && wall.y === newY) {
+                        return true;
+                    }
+                    if (direction === 'left' && wall.direction === 'left' && 
+                        wall.x === newX && wall.y === newY) {
+                        return true;
+                    }
+                    if (direction === 'down' && wall.direction === 'bottom' && 
+                        wall.x === newX && wall.y === newY) {
+                        return true;
+                    }
+                    if (direction === 'up' && wall.direction === 'top' && 
+                        wall.x === newX && wall.y === newY) {
+                        return true;
+                    }
+                    return false;
+                });
+                
+                if (hasWall) {
+                    break;
+                }
+                
+                // Check if there's another bot blocking the move
+                const hasBot = bots.some((otherBot, index) => {
+                    return index !== botIndex && otherBot.x === nextX && otherBot.y === nextY;
+                });
+                
+                if (hasBot) {
+                    break;
+                }
+                
+                // Move is valid
+                newX = nextX;
+                newY = nextY;
+                hasMoved = true;
+            }
+            
+            // Update bot position if it moved
+            if (hasMoved) {
+                const oldX = bot.x;
+                const oldY = bot.y;
+                bot.x = newX;
+                bot.y = newY;
+                moveCount++;
+                moveCounter.textContent = moveCount.toString();
+                
+                // Store the moving bot's index for animation
+                const movingBotIndex = botIndex;
+                
+                // Render board with new positions
+                renderBoard();
+                
+                // Add animation class only to the moved bot
+                const allBots = document.querySelectorAll('.bot');
+                allBots.forEach((botElement, index) => {
+                    if (index === movingBotIndex) {
+                        botElement.classList.add('moving');
+                        // Remove the class after animation completes
+                        setTimeout(() => {
+                            botElement.classList.remove('moving');
+                        }, 850);
+                    }
+                });
+                
+                checkWinCondition();
+            }
+        }
+
+        // Check win condition with optimal moves comparison
+        function checkWinCondition() {
+            const currentTarget = targets[currentTargetIndex];
+            const matchingBot = bots.find(bot => 
+                bot.color === currentTarget.color && 
+                bot.x === currentTarget.x && 
+                bot.y === currentTarget.y
+            );
+
+            if (matchingBot) {
+                // Stop timer first to capture final time
+                stopTimer();
+                
+                // Get final stats
+                const finalTime = timer.textContent;
+                const finalMoves = moveCount;
+                const optimalMoves = currentPuzzle.optimalMoves;
+                
+                // Add to history
+                try {
+                    addToHistory(finalTime, finalMoves, optimalMoves);
+                } catch (error) {
+                    console.log("History feature unavailable in sandbox mode");
+                }
+                
+                // Show victory message
+                setTimeout(() => {
+                    const victoryMessage = 
+                        `🎮 ${currentPuzzle.name} COMPLETED! 🎮\n\n` +
+                        `⏱️ Time: ${finalTime}\n` +
+                        `🚶 Moves: ${finalMoves}\n` +
+                        `💫 Optimal solution: ${optimalMoves} moves\n` +
+                        `🎯 Efficiency: ${optimalMoves === '?' ? 'Unknown' : 
+                            Math.round((optimalMoves / finalMoves) * 100) + '%'}`;
+                        
+                    const dialog = document.getElementById('victoryDialog');
+                    const messageDiv = document.getElementById('victoryMessage');
+                    const playAgainBtn = document.getElementById('playAgainBtn');
+                    
+                    messageDiv.innerHTML = victoryMessage.replace(/\n/g, '<br>');
+                    dialog.showModal();
+                    
+                    playAgainBtn.onclick = () => {
+                        dialog.close();
+                        initLevel();
+                        renderBoard();
+                        moveCount = 0;
+                        moveCounter.textContent = "0";
+                        startTimer();
+                    };
+                }, 100);
+            }
+        }
+
+        // Show history modal
+        function showHistoryModal() {
+            try {
+                updateHistoryList();
+                historyModal.style.display = 'flex';
+            } catch (error) {
+                noHistoryMessage.style.display = 'block';
+                historyModal.style.display = 'flex';
+                alert("History feature is limited in sandbox mode. Your scores won't persist between sessions.");
+            }
+        }
+
+        // Close history modal
+        function closeHistoryModal() {
+            historyModal.style.display = 'none';
+        }
+
+        // Safe localStorage access with fallback to memory
+        function safeGetItem(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function safeSetItem(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // Load puzzle history
+        function loadPuzzleHistory() {
+            try {
+                const savedHistory = safeGetItem('botsWithBudsHistory');
+                if (savedHistory) {
+                    puzzleHistory = JSON.parse(savedHistory);
+                } else {
+                    puzzleHistory = [];
+                }
+            } catch (error) {
+                puzzleHistory = [];
+            }
+        }
+
+        // Save puzzle history
+        function savePuzzleHistory() {
+            try {
+                safeSetItem('botsWithBudsHistory', JSON.stringify(puzzleHistory));
+            } catch (error) {
+                console.log("Unable to save history");
+            }
+        }
+
+        // Add to history with optimal moves
+        function addToHistory(time, moves, optimalMoves) {
+            const completionDate = new Date();
+            
+            puzzleHistory.unshift({
+                date: completionDate.toISOString(),
+                displayDate: formatDate(completionDate),
+                puzzleName: currentPuzzle.name,
+                difficulty: currentPuzzle.difficulty,
+                time: time,
+                moves: moves,
+                optimalMoves: optimalMoves
+            });
+            
+            // Limit history to 50 entries
+            if (puzzleHistory.length > 50) {
+                puzzleHistory.pop();
+            }
+            
+            try {
+                savePuzzleHistory();
+            } catch (error) {
+                console.log("History saving is unavailable");
+            }
+        }
+
+        // Format date for display
+        function formatDate(date) {
+            const options = { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Update history list with optimal moves
+        function updateHistoryList() {
+            historyList.innerHTML = '';
+            
+            if (puzzleHistory.length === 0) {
+                noHistoryMessage.style.display = 'block';
+                return;
+            }
+            
+            noHistoryMessage.style.display = 'none';
+            
+            puzzleHistory.forEach(entry => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const efficiency = entry.optimalMoves === '?' ? 'Unknown' :
+                    Math.round((entry.optimalMoves / entry.moves) * 100) + '%';
+                
+                historyItem.innerHTML = `
+                    <div class="history-date">${entry.displayDate}</div>
+                    <div class="puzzle-info">
+                        <div>${entry.puzzleName}</div>
+                        <div>Difficulty: ${entry.difficulty}</div>
+                    </div>
+                    <div class="history-stats">
+                        <div>Time: ${entry.time}</div>
+                        <div>Moves: ${entry.moves} (optimal: ${entry.optimalMoves})</div>
+                        <div>Efficiency: ${efficiency}</div>
+                    </div>
+                `;
+                
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Reset bots
+        function resetBots() {
+            // Reset bots to their original positions
+            bots = positionMarkers.map(marker => ({
+                x: marker.x,
+                y: marker.y,
+                color: marker.color
+            }));
+            
+            // Render the board with reset positions
+            renderBoard();
+        }
+    </script>
+</body>
+</html>

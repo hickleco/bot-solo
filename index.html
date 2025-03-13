@@ -270,6 +270,18 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            box-sizing: border-box;
+        }
+
+        /* Add a container for the grid cells */
+        .grid-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         .grid-cell {
@@ -1128,7 +1140,8 @@
 
         // Render the game board
         function renderBoard() {
-            gameBoard.innerHTML = '';
+            gameBoard.innerHTML = '<div class="grid-container"></div>';
+            const gridContainer = gameBoard.querySelector('.grid-container');
             cellSize = gameBoard.offsetWidth / GRID_SIZE;
             
             // Create grid cells
@@ -1140,7 +1153,7 @@
                     cell.style.height = `${cellSize}px`;
                     cell.style.left = `${x * cellSize}px`;
                     cell.style.top = `${y * cellSize}px`;
-                    gameBoard.appendChild(cell);
+                    gridContainer.appendChild(cell);
                 }
             }
             
@@ -1155,7 +1168,7 @@
                 markerElement.style.top = `${marker.y * cellSize + (cellSize * 0.1)}px`;
                 markerElement.style.borderColor = botColor.shadow;
                 markerElement.style.borderWidth = '3px';
-                gameBoard.appendChild(markerElement);
+                gridContainer.appendChild(markerElement);
             });
             
             // Render walls
@@ -1185,10 +1198,10 @@
                     wallElement.style.top = `${wall.y * cellSize - 1.5}px`;
                 }
                 
-                gameBoard.appendChild(wallElement);
+                gridContainer.appendChild(wallElement);
             });
             
-            // Render only the current target
+            // Render target
             const target = targets[currentTargetIndex];
             const botColor = BOT_COLORS[target.color];
             const targetElement = document.createElement('div');
@@ -1205,7 +1218,7 @@
             targetElement.style.justifyContent = 'center';
             targetElement.style.alignItems = 'center';
             targetElement.innerHTML = botColor.shape;
-            gameBoard.appendChild(targetElement);
+            gridContainer.appendChild(targetElement);
             
             // Render bots
             bots.forEach((bot, index) => {
@@ -1220,13 +1233,6 @@
                 botElement.style.boxShadow = `0 0 10px ${botColor.shadow}`;
                 botElement.innerHTML = botColor.shape;
                 
-                // Add animation trigger
-                if (bot.x !== bot.x || bot.y !== bot.y) {
-                    botElement.style.animation = 'none';
-                    botElement.offsetHeight; // Trigger reflow
-                    botElement.style.animation = 'botMove 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                }
-                
                 botElement.addEventListener('click', () => {
                     selectedBotIndex = index;
                     document.querySelectorAll('.bot-btn').forEach(btn => {
@@ -1235,7 +1241,7 @@
                     document.querySelectorAll('.bot-btn')[bot.color].classList.add('selected');
                 });
                 
-                gameBoard.appendChild(botElement);
+                gridContainer.appendChild(botElement);
             });
         }
 

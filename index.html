@@ -43,7 +43,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 10px;
+            padding: 15px;
             box-sizing: border-box;
             background: linear-gradient(135deg, var(--dark-blue) 0%, #000 100%);
         }
@@ -178,23 +178,25 @@
             touch-action: none;
             display: flex;
             flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 10px;
-            width: 100%;
-            gap: 10px;
-            flex-shrink: 0;
+            margin: 10px 0;
+            gap: 8px;
+            padding: 0 5px;
         }
 
         .reset-btn, .history-btn {
             background-color: var(--neon-pink);
             color: var(--neon-yellow);
             border: none;
-            padding: 10px 20px;
+            padding: 12px 25px;
             font-size: 18px;
             font-weight: bold;
             border-radius: 10px;
@@ -239,15 +241,13 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin: 10px 0;
-            padding: 5px;
+            margin: 5px 0;
+            padding: 8px;
             color: var(--neon-yellow);
-            font-size: 20px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--neon-yellow);
-            flex-shrink: 0;
+            font-size: 18px;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
         }
         
         #timer, #moveCounter {
@@ -257,29 +257,35 @@
         }
 
         .game-board {
-            width: 90%;
+            width: 95%;
             aspect-ratio: 1/1;
+            margin: 10px auto;
+            border-radius: 8px;
+            overflow: hidden;
             background-color: var(--grid-blue);
             position: relative;
             border: 2px solid var(--neon-pink);
             box-shadow: 0 0 20px var(--neon-pink);
-            margin: 10px auto;
             touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
-            overflow: hidden;
-            flex-shrink: 0;
         }
 
         .grid-cell {
             position: absolute;
             box-sizing: border-box;
-            border: 1px solid rgba(68, 221, 255, 0.2);
+            border: 1px solid rgba(68, 221, 255, 0.15);
             background: linear-gradient(135deg, 
-                rgba(68, 221, 255, 0.1) 0%, 
+                rgba(68, 221, 255, 0.05) 0%, 
                 transparent 100%
             );
+            transition: background-color 0.2s ease;
+        }
+
+        .grid-cell.valid-move {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(68, 221, 255, 0.3);
         }
 
         .wall {
@@ -287,7 +293,19 @@
             background-color: var(--wall-blue);
             z-index: 5;
             box-shadow: 0 0 8px var(--wall-blue);
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .wall.collision {
             opacity: 1;
+            animation: wallCollision 0.3s ease;
+        }
+
+        @keyframes wallCollision {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
         }
 
         .target {
@@ -316,90 +334,50 @@
             justify-content: center;
             align-items: center;
             z-index: 10;
-            transition: left 0.85s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        top 0.85s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        transform 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .bot.moving {
-            animation: botMove 0.85s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .bot.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px currentColor;
         }
 
-        @keyframes botMove {
+        .bot.invalid-move {
+            animation: invalidMove 0.3s ease;
+        }
+
+        @keyframes invalidMove {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
             100% { transform: scale(1); }
         }
 
-        .bot:hover {
-            transform: scale(1.1);
-            cursor: pointer;
-        }
-
         .bot-selector {
-            display: flex;
-            justify-content: space-between;
-            width: 90%;
+            width: 95%;
             margin: 10px auto;
-            background-color: var(--neon-pink);
-            border-radius: 30px;
-            padding: 15px;
-            box-shadow: 0 0 20px var(--neon-pink);
-            position: relative;
-            bottom: 0;
-            flex-shrink: 0;
+            padding: 12px;
+            border-radius: 25px;
+            background: linear-gradient(to right, var(--neon-pink), #ff1fff);
         }
 
         .bot-btn {
-            width: 50px;
-            height: 50px;
-            margin: 0 5px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            color: rgba(0, 0, 0, 0.7);
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-            box-shadow: 
-                0 0 10px rgba(0, 0, 0, 0.3),
-                inset 0 0 15px rgba(0, 0, 0, 0.2);
+            width: 55px;
+            height: 55px;
+            margin: 0;
+            transform-origin: center;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bot-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(145deg, 
-                rgba(255, 255, 255, 0.2) 0%, 
-                rgba(255, 255, 255, 0.1) 47%, 
-                rgba(0, 0, 0, 0.1) 53%, 
-                rgba(0, 0, 0, 0.2) 100%);
-            border-radius: 50%;
         }
 
         .bot-btn.selected {
-            transform: scale(1.2);
+            transform: scale(1.15);
             box-shadow: 
                 0 0 20px currentColor,
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
-            color: rgba(0, 0, 0, 0.8);
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+                inset 0 0 15px rgba(0, 0, 0, 0.4);
         }
 
         .bot-btn:hover {
             transform: scale(1.1);
-            box-shadow: 
-                0 0 15px rgba(0, 0, 0, 0.4),
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
         }
 
         /* Modal Styles */

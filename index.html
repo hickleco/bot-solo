@@ -257,14 +257,14 @@
         }
 
         .game-board {
-            width: 95%;
+            width: 90%;
             aspect-ratio: 1/1;
-            margin: 10px auto;
-            border-radius: 8px;
+            margin: 20px auto;
+            border-radius: 12px;
             overflow: hidden;
             background-color: var(--grid-blue);
             position: relative;
-            border: 2px solid var(--neon-pink);
+            border: 3px solid var(--neon-pink);
             box-shadow: 0 0 20px var(--neon-pink);
             touch-action: none;
             -webkit-touch-callout: none;
@@ -354,19 +354,25 @@
         }
 
         .bot-selector {
-            width: 95%;
-            margin: 10px auto;
-            padding: 12px;
-            border-radius: 25px;
-            background: linear-gradient(to right, var(--neon-pink), #ff1fff);
+            width: 85%;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 35px;
+            background: var(--neon-pink);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .bot-btn {
-            width: 55px;
-            height: 55px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             margin: 0;
-            transform-origin: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .bot-btn.selected {
@@ -510,6 +516,106 @@
             font-size: 14px;
             margin: 8px 0;
         }
+
+        /* Instructions Modal */
+        .instructions-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .instructions-content {
+            background-color: var(--dark-blue);
+            border: 3px solid var(--neon-pink);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 20px var(--neon-pink),
+                        inset 0 0 15px var(--neon-pink);
+        }
+
+        .instructions-title {
+            color: var(--neon-yellow);
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--neon-yellow);
+            letter-spacing: 2px;
+        }
+
+        .instructions-section {
+            margin-bottom: 25px;
+        }
+
+        .instructions-section h3 {
+            color: var(--neon-pink);
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px var(--neon-pink);
+            letter-spacing: 1px;
+        }
+
+        .instructions-section p {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .start-game-btn {
+            background-color: var(--neon-yellow);
+            color: var(--dark-blue);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto 0;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px var(--neon-yellow);
+        }
+
+        .start-game-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px var(--neon-yellow);
+        }
+
+        /* Scrollbar styling */
+        .instructions-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .instructions-content::-webkit-scrollbar-track {
+            background: var(--dark-blue);
+            border-radius: 4px;
+        }
+
+        .instructions-content::-webkit-scrollbar-thumb {
+            background: var(--neon-pink);
+            border-radius: 4px;
+            box-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        .instructions-content::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-yellow);
+            box-shadow: 0 0 5px var(--neon-yellow);
+        }
     </style>
 </head>
 <body>
@@ -563,6 +669,28 @@
         <div id="victoryMessage"></div>
         <button id="playAgainBtn">PLAY AGAIN</button>
     </dialog>
+
+    <!-- Instructions Modal -->
+    <div class="instructions-modal" id="instructionsModal">
+        <div class="instructions-content">
+            <div class="instructions-title">BOTS WITH BUDS</div>
+            <div class="instructions-section">
+                <h3>HOW TO PLAY</h3>
+                <p>Get your bot to the matching target shape in the fewest moves possible!</p>
+                <p>Bots slide until they hit something - no brakes!</p>
+                <p>Swipe to launch bots horizontally or vertically</p>
+                <p>Create clever paths by using other bots as bumpers</p>
+                <p>Find the shortest solution before your friends do!</p>
+            </div>
+            <div class="instructions-section">
+                <h3>PRO TIPS</h3>
+                <p>The target color shows which bot needs to reach it</p>
+                <p>Every slide counts as one move - even helper bots!</p>
+                <p>Plan your route carefully - the fastest solver wins!</p>
+            </div>
+            <button class="start-game-btn" id="startGameBtn">READY? SET... SLIDE! 👾</button>
+        </div>
+    </div>
 
     <script>
         // Game configuration
@@ -681,12 +809,15 @@
         const closeHistoryBtn = document.getElementById('closeHistoryBtn');
         const historyList = document.getElementById('historyList');
         const noHistoryMessage = document.getElementById('noHistoryMessage');
+        const instructionsModal = document.getElementById('instructionsModal');
+        const startGameBtn = document.getElementById('startGameBtn');
 
         // Event Listeners
         startBtn.addEventListener('click', startGame);
         resetBtn.addEventListener('click', resetBots);
         historyBtn.addEventListener('click', showHistoryModal);
         closeHistoryBtn.addEventListener('click', closeHistoryModal);
+        startGameBtn.addEventListener('click', startGameplay);
 
         // Puzzle solver
         function getValidMoves(state, walls) {
@@ -834,6 +965,12 @@
         function startGame() {
             titleScreen.style.display = 'none';
             gameScreen.style.display = 'block';
+            instructionsModal.style.display = 'flex';
+        }
+
+        // Start actual gameplay
+        function startGameplay() {
+            instructionsModal.style.display = 'none';
             
             // Initialize game
             initLevel();

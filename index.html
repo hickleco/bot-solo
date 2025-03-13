@@ -21,26 +21,31 @@
             margin: 0;
             padding: 0;
             font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, var(--dark-blue) 0%, #000 100%);
+            background: var(--dark-blue);
             color: white;
             min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            overflow-x: hidden;
+            overflow: hidden;
             position: fixed;
-            width: 100%;
-            height: 100%;
+            top: 0;
+            left: 0;
         }
 
         .container {
             width: 100%;
             max-width: 400px;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 10px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #000 100%);
         }
 
         /* Title Screen */
@@ -168,25 +173,29 @@
         #gameScreen {
             display: none;
             width: 100%;
+            height: 100%;
             overflow: hidden;
             touch-action: none;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             width: 100%;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .reset-btn, .history-btn {
             background-color: var(--neon-pink);
             color: var(--neon-yellow);
             border: none;
-            padding: 15px 30px;
-            font-size: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
@@ -199,7 +208,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-width: 140px;
+            min-width: 120px;
+            flex-shrink: 0;
         }
 
         .reset-btn::before, .history-btn::before {
@@ -229,14 +239,15 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin: 20px 0;
-            padding: 10px;
+            margin: 10px 0;
+            padding: 5px;
             color: var(--neon-yellow);
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 0 0 10px var(--neon-yellow);
+            flex-shrink: 0;
         }
         
         #timer, #moveCounter {
@@ -246,18 +257,19 @@
         }
 
         .game-board {
-            width: 100%;
+            width: 90%;
             aspect-ratio: 1/1;
             background-color: var(--grid-blue);
             position: relative;
             border: 2px solid var(--neon-pink);
             box-shadow: 0 0 20px var(--neon-pink);
-            margin-bottom: 40px;
+            margin: 10px auto;
             touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .grid-cell {
@@ -328,17 +340,20 @@
             display: flex;
             justify-content: space-between;
             width: 90%;
-            margin: 0 auto 30px auto;
+            margin: 10px auto;
             background-color: var(--neon-pink);
             border-radius: 30px;
             padding: 15px;
             box-shadow: 0 0 20px var(--neon-pink);
+            position: relative;
+            bottom: 0;
+            flex-shrink: 0;
         }
 
         .bot-btn {
-            width: 60px;
-            height: 60px;
-            margin: 0 10px;
+            width: 50px;
+            height: 50px;
+            margin: 0 5px;
             border-radius: 50%;
             border: none;
             cursor: pointer;

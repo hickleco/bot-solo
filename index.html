@@ -25,6 +25,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
 
         .container {
@@ -49,8 +53,9 @@
             position: relative;
             overflow: hidden;
             background: url('assets/Background.png') center/cover no-repeat;
-            padding: 20vh 20px 15vh 20px;
+            padding: 12vh 20px 8vh 20px;
             box-sizing: border-box;
+            touch-action: none;
         }
 
         #titleScreen::before {
@@ -131,7 +136,7 @@
 
         @media (max-height: 700px) {
             #titleScreen {
-                padding: 15vh 20px 12vh 20px;
+                padding: 8vh 20px 6vh 20px;
             }
             
             .title {
@@ -145,7 +150,7 @@
 
         @media (min-height: 701px) and (max-height: 800px) {
             #titleScreen {
-                padding: 18vh 20px 13vh 20px;
+                padding: 10vh 20px 8vh 20px;
             }
             
             .title {
@@ -244,6 +249,7 @@
             border: 2px solid var(--neon-pink);
             box-shadow: 0 0 20px var(--neon-pink);
             margin-bottom: 40px;
+            touch-action: none;
         }
 
         .grid-cell {
@@ -878,6 +884,51 @@
                         break;
                 }
             });
+
+            // Add touch controls
+            let touchStartX = 0;
+            let touchStartY = 0;
+            const minSwipeDistance = 30;
+
+            gameBoard.addEventListener('touchstart', (e) => {
+                if (selectedBotIndex === null) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            }, { passive: false });
+
+            gameBoard.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+
+            gameBoard.addEventListener('touchend', (e) => {
+                if (selectedBotIndex === null) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                if (Math.abs(deltaX) < minSwipeDistance && Math.abs(deltaY) < minSwipeDistance) return;
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // Horizontal swipe
+                    if (deltaX > 0) {
+                        moveBot(selectedBotIndex, 'right');
+                    } else {
+                        moveBot(selectedBotIndex, 'left');
+                    }
+                } else {
+                    // Vertical swipe
+                    if (deltaY > 0) {
+                        moveBot(selectedBotIndex, 'down');
+                    } else {
+                        moveBot(selectedBotIndex, 'up');
+                    }
+                }
+                e.preventDefault();
+            }, { passive: false });
         }
 
         // Start timer

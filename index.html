@@ -323,8 +323,6 @@
 
         .bot {
             position: absolute;
-            border-radius: 50%;
-            box-shadow: 0 0 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -332,6 +330,13 @@
             transition: left 0.85s cubic-bezier(0.34, 1.56, 0.64, 1),
                         top 0.85s cubic-bezier(0.34, 1.56, 0.64, 1),
                         transform 0.2s ease;
+            background: transparent;
+        }
+
+        .bot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .bot.moving {
@@ -356,62 +361,45 @@
             justify-content: space-between;
             width: 90%;
             margin: 0 auto 30px auto;
-            background-color: var(--neon-pink);
-            border-radius: 30px;
-            padding: 15px;
-            box-shadow: 0 0 20px var(--neon-pink);
+            background: url('assets/controls.svg') center/contain no-repeat;
+            padding: 15px 25px;
+            min-height: 80px;
+            box-sizing: border-box;
         }
 
         .bot-btn {
             width: 60px;
             height: 60px;
-            margin: 0 10px;
+            margin: 0;
             border-radius: 50%;
             border: none;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 32px;
-            color: rgba(0, 0, 0, 0.7);
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-            box-shadow: 
-                0 0 10px rgba(0, 0, 0, 0.3),
-                inset 0 0 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background-color: transparent;
+            transition: transform 0.2s ease;
             position: relative;
-            overflow: hidden;
+            padding: 0;
         }
 
-        .bot-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(145deg, 
-                rgba(255, 255, 255, 0.2) 0%, 
-                rgba(255, 255, 255, 0.1) 47%, 
-                rgba(0, 0, 0, 0.1) 53%, 
-                rgba(0, 0, 0, 0.2) 100%);
-            border-radius: 50%;
+        .bot-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: filter 0.2s ease;
         }
 
         .bot-btn.selected {
             transform: scale(1.2);
-            box-shadow: 
-                0 0 20px currentColor,
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
-            color: rgba(0, 0, 0, 0.8);
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .bot-btn.selected img {
+            filter: drop-shadow(0 0 10px var(--neon-pink));
         }
 
         .bot-btn:hover {
             transform: scale(1.1);
-            box-shadow: 
-                0 0 15px rgba(0, 0, 0, 0.4),
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
         }
 
         /* Modal Styles */
@@ -601,10 +589,10 @@
         // Game configuration
         const GRID_SIZE = 8;
         const BOT_COLORS = [
-            { color: '#FF44FF', shadow: '#FF00FF', shape: '◆' }, // Diamond - Pink
-            { color: '#FFAA44', shadow: '#FF8800', shape: '▲' }, // Triangle - Orange
-            { color: '#44FF44', shadow: '#00FF00', shape: '★' }, // Star - Green
-            { color: '#44DDFF', shadow: '#00CCFF', shape: '●' }  // Circle - Blue
+            { color: '#FF44FF', shadow: '#FF00FF', image: 'assets/diamond_bot.svg' }, // Diamond - Pink
+            { color: '#FFAA44', shadow: '#FF8800', image: 'assets/triangle_bot.svg' }, // Triangle - Orange
+            { color: '#44FF44', shadow: '#00FF00', image: 'assets/star_bot.svg' }, // Star - Green
+            { color: '#44DDFF', shadow: '#00CCFF', image: 'assets/circle_bot.svg' }  // Circle - Blue
         ];
 
         // Puzzle Bank
@@ -883,9 +871,11 @@
             BOT_COLORS.forEach((bot, index) => {
                 const botBtn = document.createElement('button');
                 botBtn.className = 'bot-btn';
-                botBtn.style.backgroundColor = bot.color;
-                botBtn.style.boxShadow = `0 0 10px ${bot.shadow}`;
-                botBtn.innerHTML = bot.shape;
+                
+                const botImg = document.createElement('img');
+                botImg.src = bot.image;
+                botImg.alt = `Bot ${index + 1}`;
+                botBtn.appendChild(botImg);
                 
                 botBtn.addEventListener('click', () => {
                     document.querySelectorAll('.bot-btn').forEach(btn => {
@@ -1093,14 +1083,15 @@
                 botElement.style.height = `${cellSize * 0.8}px`;
                 botElement.style.left = `${bot.x * cellSize + (cellSize * 0.1)}px`;
                 botElement.style.top = `${bot.y * cellSize + (cellSize * 0.1)}px`;
-                botElement.style.backgroundColor = botColor.color;
-                botElement.style.boxShadow = `0 0 10px ${botColor.shadow}`;
-                botElement.innerHTML = botColor.shape;
                 
-                // Add animation trigger
+                const botImg = document.createElement('img');
+                botImg.src = botColor.image;
+                botImg.alt = `Bot ${index + 1}`;
+                botElement.appendChild(botImg);
+                
                 if (bot.x !== bot.x || bot.y !== bot.y) {
                     botElement.style.animation = 'none';
-                    botElement.offsetHeight; // Trigger reflow
+                    botElement.offsetHeight;
                     botElement.style.animation = 'botMove 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
                 }
                 
